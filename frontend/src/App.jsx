@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./components/LoginPage";
 import { Navbar } from "./components/Navbar";
 import { Sidebar } from "./components/Sidebar";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function Dashboard() {
   return (
@@ -18,18 +19,18 @@ function Dashboard() {
   );
 }
 
-
-
 function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/dashboard" element={<Dashboard />} />
+
+      <Route element={<ProtectedRoute />}>
+        <Route path="/dashboard" element={<Dashboard />} />
+      </Route>
 
       <Route path="/" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 }
-
 
 export default App;

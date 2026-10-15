@@ -63,6 +63,38 @@ router.post("/login", async (req, res) => {
 });
 
 
+//session check route
+router.get("/me", async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({
+      error: "Not authenticated",
+    });
+  }
+
+  try {
+    const result = await pool.query(
+      `SELECT id, name, email
+       FROM users
+       WHERE id = $1`,
+      [req.session.userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({
+        error: "Not authenticated",
+      });
+    }
+
+    res.json({ user: result.rows[0] });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: "Failed to check session",
+    });
+  }
+});
+
+
 //Logout a user
 router.post("/logout", (req, res) => {
   req.session.destroy((err) => {
