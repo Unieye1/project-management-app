@@ -16,7 +16,7 @@ CREATE TABLE users (
 );
 CREATE TABLE users_profiles (
     id UUID  PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFeRENCES users ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users ON DELETE CASCADE,
     name TEXT NOT NULL ,
     bio TEXT ,
     phone TEXT,
@@ -25,7 +25,7 @@ CREATE TABLE users_profiles (
 );
 CREATE TABLE projects(
    id UUID  PRIMARY KEY DEFAULT gen_random_uuid(),
-   owner_id UUID NOT NULL  REFeRENCES users ON DELETE RESTRICT,
+   owner_id UUID NOT NULL  REFERENCES users ON DELETE RESTRICT,
    name TEXT NOT NULL,
    status project_status NOT NULL  DEFAULT 'active' ,
    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -33,12 +33,12 @@ CREATE TABLE projects(
 );
 CREATE TABLE tasks (
     id UUID  PRIMARY KEY DEFAULT gen_random_uuid(),
-    project_id UUID NOT NULL  REFeRENCES projects ON DELETE CASCADE,
+    project_id UUID NOT NULL  REFERENCES projects ON DELETE CASCADE,
     title TEXT NOT NULL,
      description TEXT,
      priority INTEGER NOT NULL DEFAULT 1 CHECK (priority BETWEEN 1 AND 5),
     due_date DATE,
-    assigned_at UUID REFeRENCES users ON DELETE SET NULL,
+    assigned_at UUID REFERENCES users ON DELETE SET NULL,
    status task_status NOT NULL  DEFAULT 'pending' ,
    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

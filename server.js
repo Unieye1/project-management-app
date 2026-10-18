@@ -30,6 +30,9 @@ app.use("/api/users",userRoutes);
 const authRoutes = require("./routes/auth");
 app.use("/api/auth", authRoutes);
 
+const dashboardRoutes = require("./routes/dashboard");
+app.use("/api/dashboard", dashboardRoutes);
+
 app.listen(3000, () => {
   console.log("Server running at http://localhost:3000");
 });
