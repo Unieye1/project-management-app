@@ -11,32 +11,31 @@ function Dashboard() {
   const [projectError, setProjectError] = useState("");
   const [creatingProject, setCreatingProject] = useState(false);
 
+  async function fetchDashboard() {
+    try {
+      const response = await fetch(
+        "http://localhost:3000/api/dashboard/summary",
+        {
+          credentials: "include",
+        },
+      );
 
-async function fetchDashboard() {
-      try {
-        const response = await fetch(
-          "http://localhost:3000/api/dashboard/summary",
-          {
-            credentials: "include",
-          },
+      if (!response.ok) {
+        throw new Error(
+          response.status === 401
+            ? "Your session has expired. Please log in again."
+            : "Failed to load dashboard",
         );
-
-        if (!response.ok) {
-          throw new Error(
-            response.status === 401
-              ? "Your session has expired. Please log in again."
-              : "Failed to load dashboard",
-          );
-        }
-
-        const data = await response.json();
-        setDashboardData(data);
-      } catch (err) {
-        setError(err.message || "Unable to connect to the server");
-      } finally {
-        setLoading(false);
       }
+
+      const data = await response.json();
+      setDashboardData(data);
+    } catch (err) {
+      setError(err.message || "Unable to connect to the server");
+    } finally {
+      setLoading(false);
     }
+  }
   useEffect(() => {
     fetchDashboard();
   }, []);
@@ -89,48 +88,45 @@ async function fetchDashboard() {
   ];
 
   async function handleCreateProject(event) {
-  event.preventDefault();
+    event.preventDefault();
 
-  const name = projectName.trim();
+    const name = projectName.trim();
 
-  if (!name) {
-    setProjectError("Please enter a project name.");
-    return;
-  }
+    if (!name) {
+      setProjectError("Please enter a project name.");
+      return;
+    }
 
-  setCreatingProject(true);
-  setProjectError("");
+    setCreatingProject(true);
+    setProjectError("");
 
-  try {
-    const response = await fetch(
-      "http://localhost:3000/api/projects",
-      {
+    try {
+      const response = await fetch("http://localhost:3000/api/projects", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
         body: JSON.stringify({ name }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to create project.");
       }
-    );
 
-    const data = await response.json();
+      setProjectName("");
+      setShowProjectForm(false);
 
-    if (!response.ok) {
-      throw new Error(data.error || "Failed to create project.");
+      // Reuse your existing project-fetching function.
+      await fetchDashboard();
+    } catch (error) {
+      setProjectError(error.message || "Something went wrong.");
+    } finally {
+      setCreatingProject(false);
     }
-
-    setProjectName("");
-    setShowProjectForm(false);
-
-    // Reuse your existing dashboard-fetching function.
-    await fetchDashboard();
-  } catch (error) {
-    setProjectError(error.message || "Something went wrong.");
-  } finally {
-    setCreatingProject(false);
   }
-}
 
   return (
     <>
