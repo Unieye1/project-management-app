@@ -64,7 +64,7 @@ function Dashboard() {
     {
       label: "Total Tasks",
       value: dashboardData ? dashboardData.stats.totalTasks : 0,
-      detail: `${dashboardData ? dashboardData.stats.pendingTasks : 0} tasks`,
+      detail: `${dashboardData ? dashboardData.stats.totalTasks : 0} tasks`,
       color: "text-blue-600",
       bg: "bg-blue-50",
       icon: "☷",

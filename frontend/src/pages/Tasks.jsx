@@ -107,51 +107,51 @@ export default function Tasks() {
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [modalOpen]);
 
-  useEffect(() => {
-    async function fetchTasks() {
-      try {
-        setLoading(true);
-        setError("");
+  async function fetchTasks() {
+    try {
+      setLoading(true);
+      setError("");
 
-        const response = await fetch("http://localhost:3000/api/tasks", {
-          credentials: "include",
-        });
+      const response = await fetch("http://localhost:3000/api/tasks", {
+        credentials: "include",
+      });
 
-        const data = await response.json();
+      const data = await response.json();
 
-        if (!response.ok) {
-          throw new Error(data.error || "Failed to fetch tasks");
-        }
-
-        setTasks(data);
-      } catch (err) {
-        setError(err.message || "Something went wrong");
-      } finally {
-        setLoading(false);
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to fetch tasks");
       }
-    }
 
+      setTasks(data);
+    } catch (err) {
+      setError(err.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
     fetchTasks();
   }, []);
 
-  useEffect(() => {
-    async function fetchProjects() {
-      try {
-        const response = await fetch("http://localhost:3000/api/projects", {
-          credentials: "include",
-        });
+  async function fetchProjects() {
+    try {
+      const response = await fetch("http://localhost:3000/api/projects", {
+        credentials: "include",
+      });
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch projects");
-        }
-
-        const data = await response.json();
-        setProjects(data);
-      } catch (error) {
-        console.error(error);
+      if (!response.ok) {
+        throw new Error("Failed to fetch projects");
       }
-    }
 
+      const data = await response.json();
+      setProjects(data);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  useEffect(() => {
     fetchProjects();
   }, []);
 
@@ -205,7 +205,7 @@ export default function Tasks() {
     setModalOpen(true);
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     const title = form.title.trim();
     const project = projects.find(
@@ -216,57 +216,87 @@ export default function Tasks() {
       return;
     }
 
-    if (editingId !== null) {
-      setTasks((currentTasks) =>
-        currentTasks.map((task) => {
-          if (task.id !== editingId) return task;
-          return {
-            ...task,
-            title,
-            description: form.description.trim(),
-            project_id: project.id,
-            project_name: project.name,
-            priority: Number(form.priority),
-            status: form.status,
-            due_date: form.due_date || null,
-            assigned_at: form.assignee_name
-              ? task.assignee_name === form.assignee_name
-                ? task.assigned_at
-                : new Date().toISOString()
-              : null,
-            assignee_name: form.assignee_name || null,
-          };
-        }),
-      );
-      setFeedback("Task updated.");
-    } else {
-      setTasks((currentTasks) => [
-        {
-          id: nextId,
+   if (editingId !== null) {
+  const response = await fetch(
+    `http://localhost:3000/api/tasks/${editingId}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        project_id: project.id,
+        title,
+        description: form.description.trim(),
+        priority: Number(form.priority),
+        status: form.status,
+        due_date: form.due_date || null,
+        assigned_at: null,
+      }),
+    }
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || "Failed to update task");
+  }
+
+  await fetchTasks();
+  setFeedback("Task updated.");
+} else {
+      const response = await fetch("http://localhost:3000/api/tasks", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
           project_id: project.id,
-          project_name: project.name,
           title,
           description: form.description.trim(),
           priority: Number(form.priority),
           due_date: form.due_date || null,
-          assigned_at: form.assignee_name ? new Date().toISOString() : null,
-          assignee_name: form.assignee_name || null,
+          assigned_at: null,
           status: form.status,
-        },
-        ...currentTasks,
-      ]);
-      setNextId((id) => id + 1);
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to create task");
+      }
+
+      await fetchTasks();
       setFeedback("Task created.");
     }
     closeModal();
   }
 
-  function deleteTask(task) {
-    setTasks((currentTasks) =>
-      currentTasks.filter((item) => item.id !== task.id),
+  async function deleteTask(task) {
+  try {
+    const response = await fetch(
+      `http://localhost:3000/api/tasks/${task.id}`,
+      {
+        method: "DELETE",
+        credentials: "include",
+      }
     );
-    setFeedback(`“${task.title}” was deleted.`);
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to delete task");
+    }
+
+    await fetchTasks();
+    setFeedback(`"${task.title}" was deleted.`);
+  } catch (error) {
+    setError(error.message || "Something went wrong");
   }
+}
 
   function updateStatus(taskId, status) {
     setTasks((currentTasks) =>
